@@ -1,0 +1,15 @@
+using System;
+using System.IO;
+                    
+//Retorna os paths dos arquivos na pasta atual
+var files = Directory.GetFiles("./");
+
+foreach(var file in files)
+{
+    if(file.EndsWith(".json"))
+    {
+        string fileContent = await File.ReadAllTextAsync(file);
+        
+        Console.WriteLine(fileContent);
+    }
+}
