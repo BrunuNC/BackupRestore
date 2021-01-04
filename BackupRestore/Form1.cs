@@ -8,7 +8,6 @@ namespace BackupRestore
 {
     public partial class Form1 : Form
     {
-        private string BD = "";
         private string pathDest = "";
         public Form1()
         {
@@ -29,32 +28,53 @@ namespace BackupRestore
         
         private void Backup()
         {
-            BD = txtPath.Text;
+            var DB = txtPath.Text;
             var conexao = new FbConnectionStringBuilder();
             conexao.DataSource = "localhost";
-            conexao.Database = BD;
+            conexao.Database = DB;
             conexao.UserID = "SYSDBA";
             conexao.Password = "masterkey";
 
             var backup = new FbBackup();
             backup.ConnectionString = conexao.ToString();
-            string nome = Path.GetFileNameWithoutExtension(BD);
-            var fileInfo = new FileInfo(BD);
-            pathDest = fileInfo.DirectoryName + "\\" + nome + ".gbk";
+            var fileInfo = new FileInfo(DB);
+            pathDest = $"{fileInfo.DirectoryName}\\{DB.Substring(0, DB.Length - 3)}gbk";
             backup.BackupFiles.Add(new FbBackupFile(pathDest));
             backup.Verbose = true;
             backup.Options = FbBackupFlags.IgnoreLimbo;
             backup.ServiceOutput += ServiceOutput;
             backup.Execute();
         }
+        
+        private void Restore()
+        {
+            var DB = txtPath.Text;
+            if (DB.EndsWith(".gbk"))
+            {
+                var conexao = new FbConnectionStringBuilder();
+                conexao.DataSource = "localhost";
+                conexao.Database = DB;
+                conexao.UserID = "SYSDBA";
+                conexao.Password = "masterkey";
+
+                var restore = new FbRestore();
+                restore.ConnectionString = conexao.ToString();
+                var fileInfo = new FileInfo(DB);
+                pathDest = $"{fileInfo.DirectoryName}\\{DB.Substring(0, DB.Length - 3)}eco";
+                restore.BackupFiles.Add(new FbBackupFile(pathDest));
+                restore.Verbose = true;
+                restore.ServiceOutput += ServiceOutput;
+                restore.Execute();
+            }
+            else
+            {
+                Console.WriteLine("ERRO:Arquivo de Backup não encontrado!");    
+            }
+        }
 
         static void ServiceOutput(object sender, ServiceOutputEventArgs e)
         {
             Console.WriteLine(e.Message);
-        }
-        private void Restore()
-        {
-            
         }
     }
 }
